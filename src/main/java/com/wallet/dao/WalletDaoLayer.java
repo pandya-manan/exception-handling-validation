@@ -17,5 +17,7 @@ public interface WalletDaoLayer extends JpaRepository<Wallet,Integer> {
 	public Integer getWalletBalance(Integer walletId);
 		
 	Wallet findWalletByWalletId(Integer walletId);
+	
+	
 
 }

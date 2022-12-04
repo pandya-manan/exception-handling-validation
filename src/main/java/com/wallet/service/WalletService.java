@@ -17,59 +17,49 @@ public class WalletService {
 	@Autowired(required=true)
 	public WalletDaoLayer daoLayer;
 	
-	public Wallet addNewWallet(Wallet addWallet)
+	public Wallet addNewWallet(Wallet addWallet) throws WalletCustomException
 	{
-		try
-		{
-			System.out.println("The wallet details to be added into the database is: "+addWallet.toString());
-			Wallet toSave=addWallet;
-			daoLayer.save(toSave);
-			Wallet verificationWallet=daoLayer.findWalletByWalletId(addWallet.getWalletId());
-			if(verificationWallet==null)
-			{
-				throw new WalletCustomException("The new wallet details "+addWallet+" could not be added to DB.");
-				
-			}
-			else
-			{
-				System.out.println("The wallet "+addWallet+" was added to database successfully");
-				return verificationWallet;
-			}
-		}
-		catch(Exception e)
-		{
-			System.out.println("The exception occured while adding new record to database is: "+e.getMessage());
-			Wallet negativeResponse=new Wallet();
-			negativeResponse.setWalletAccountHolderName(null);
-			negativeResponse.setWalletBalance(null);
-			negativeResponse.setWalletId(null);
-			return negativeResponse;
-		}
 		
+		Wallet toSave=addWallet;
+		daoLayer.save(toSave);
+		Wallet verificationWallet=daoLayer.findWalletByWalletId(addWallet.getWalletId());
+		if(verificationWallet==null)
+		{
+			throw new WalletCustomException("The new wallet details "+addWallet+" could not be added to DB.");
+			
+		}
+		else
+		{
+			System.out.println("The wallet "+addWallet+" was added to database successfully");
+			return verificationWallet;
+		}
 	}
 	
-	public String addAccountBalanceByWalletId(Integer addBalanceAmount, Integer walletId)
+	public String addAccountBalanceByWalletId(Integer addBalanceAmount, Integer walletId) throws WalletCustomException
 	{
-		try
+		
+		if(addBalanceAmount==0)
+		{
+			throw new WalletCustomException("The add balance amount "+addBalanceAmount+" is zero, cannot do this action ");
+		}
+		else
 		{
 			Wallet wallet=daoLayer.findWalletByWalletId(walletId);
-			Integer totalBalance=wallet.getWalletBalance()+addBalanceAmount;
+			System.out.println(wallet.toString());
+			Integer availableBalance=wallet.getWalletBalance();
+			Integer totalBalance=availableBalance+addBalanceAmount;
 			wallet.setWalletBalance(totalBalance);
+			System.out.println("To save: "+wallet.toString());
 			daoLayer.save(wallet);
 			return "The wallet was updated with new balance: "+totalBalance+" for walletId: "+walletId;
 		}
-		catch(Exception e)
-		{
-			System.out.println("The addition of funds causes exception: "+e.getMessage());
-			return "The deposit could not happen and error has occured!";
-		}
-		
+			
 	}
 	
-	public String withdrawFundsByWalletId(Integer withdrawalAmount, Integer walletId)
+	public String withdrawFundsByWalletId(Integer withdrawalAmount, Integer walletId) throws WalletCustomException
 	{
-		try
-		{
+		
+		
 			Wallet wallet=daoLayer.findWalletByWalletId(walletId);
 			Integer availableBalance=wallet.getWalletBalance();
 			
@@ -84,34 +74,25 @@ public class WalletService {
 				daoLayer.save(wallet);
 				return "The wallet was updated with new balance: "+totalBalance+" for walletId: "+walletId;
 			}
-		}
-		catch(Exception e)
-		{
-			System.out.println("The exception occured while withdrawing funds to the account: "+e.getMessage());
-			String negativeMessage="The withdrawal of funds for walletId: "+walletId+" did not occur";
-			return negativeMessage;
-		}
+				
 				
 	}
 	
-	public String retrieveAccountBalanceByWalletId(Integer walletId)
+	public String retrieveAccountBalanceByWalletId(Integer walletId) throws Exception
 	{
-		try
-		{
+		
+		
 			Wallet wallet=daoLayer.findWalletByWalletId(walletId);
 			return "The wallet Balance for walletId: "+walletId+" is: "+wallet.getWalletBalance();
-		}
-		catch(Exception e)
-		{
-			return "The exception occured to get the wallet balance based on walletId is: "+e.getMessage();
-		}
+		
+		
 		
 	}
 	
-	public Wallet retrieveWalletDetailsByWalletId(Integer walletId)
+	public Wallet retrieveWalletDetailsByWalletId(Integer walletId) throws WalletCustomException
 	{
-		try
-		{
+		
+		
 			Wallet obtainedWallet=daoLayer.findWalletByWalletId(walletId);
 			if(obtainedWallet!=null)
 			{
@@ -121,37 +102,27 @@ public class WalletService {
 			{
 				throw new WalletCustomException("The wallet details could not be retrieved using the walletId :"+walletId);
 			}
-		}
-		catch(Exception e)
-		{
-			System.out.println("The exception while getting details of wallet is: "+e.getMessage());
-			Wallet negativeResponse=new Wallet();
-			negativeResponse.setWalletAccountHolderName(null);
-			negativeResponse.setWalletBalance(null);
-			negativeResponse.setWalletId(null);
-			return negativeResponse;
-		}
+		
+		
 		
 	}
 	
-	public String deleteWalletByWalletId(Integer walletId)
+	public String deleteWalletByWalletId(Integer walletId) throws WalletCustomException
 	{
-		try
-		{
+			Optional<Wallet> department=daoLayer.findById(walletId);		
+			if(department.isEmpty())
+			{
+				throw new WalletCustomException("The wallet was not present with walletId "+walletId+" hence deletion is not possible");
+			}
 			daoLayer.deleteById(walletId);
-			return ("Wallet was deleted from database successfully");
-		}
-		catch(Exception e)
-		{
-			System.out.println("The exception caught while deletion is: "+e.getMessage());
-			return ("Wallet could not be deleted based on walletId. Error occured!");
-		}
+			return ("Wallet was deleted from database successfully for walletId: "+walletId);
+		
 	}
 	
-	public List<Wallet> transferFunds(Integer transferAmount, Integer fromWalletId, Integer toWalletId)
+	public List<Wallet> transferFunds(Integer transferAmount, Integer fromWalletId, Integer toWalletId) throws WalletCustomException
 	{
-		try
-		{
+		
+		
 			Wallet fromWallet=daoLayer.findWalletByWalletId(fromWalletId);
 			Integer availableBalance=fromWallet.getWalletBalance();
 			if(availableBalance<transferAmount)
@@ -180,13 +151,8 @@ public class WalletService {
 			System.out.println("The fund transfer was successful!");
 			
 			return wallets;
-		}
-		catch(Exception e)
-		{
-			System.out.println("The fund transfer was not successful due to : "+e.getMessage());
-			List<Wallet> wallets=new ArrayList<Wallet>();
-			return wallets;
-		}
+		
+		
 	}
 	
 
