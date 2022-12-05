@@ -78,11 +78,15 @@ public class WalletService {
 				
 	}
 	
-	public String retrieveAccountBalanceByWalletId(Integer walletId) throws Exception
+	public String retrieveAccountBalanceByWalletId(Integer walletId) throws WalletCustomException
 	{
 		
 		
 			Wallet wallet=daoLayer.findWalletByWalletId(walletId);
+			if(wallet==null)
+			{
+				throw new WalletCustomException("The wallet was not found for walletId: "+walletId);
+			}
 			return "The wallet Balance for walletId: "+walletId+" is: "+wallet.getWalletBalance();
 		
 		

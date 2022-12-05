@@ -62,7 +62,7 @@ public class WalletController {
 	
 	
 	@GetMapping("walletBalance/{walletId}")
-	public String walletBalanceDetails(@PathVariable Integer walletId) throws Exception
+	public String walletBalanceDetails(@PathVariable Integer walletId) throws WalletCustomException
 	{
 		String responseFromService=service.retrieveAccountBalanceByWalletId(walletId);
 		return responseFromService;
